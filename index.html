@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GPverdict</title>
+<meta name="description" content="Choose genomic prediction methods for selection: which metric to trust, which methods a trial cannot tell apart, and how large a trial must be.">
+<style>
+:root{--bg:#f7f8fa;--card:#ffffff;--ink:#1d2430;--muted:#5b6574;--line:#dde2ea;--accent:#2f7d46;--accent-ink:#ffffff;--soft:#eef5ee;--warn:#9a5b00}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#12161c;--card:#1a2029;--ink:#e6eaf0;--muted:#a3adbb;--line:#2c3440;--accent:#4fae6b;--accent-ink:#0d1a11;--soft:#1f2d23;--warn:#f0b35a}}
+:root[data-theme="dark"]{--bg:#12161c;--card:#1a2029;--ink:#e6eaf0;--muted:#a3adbb;--line:#2c3440;--accent:#4fae6b;--accent-ink:#0d1a11;--soft:#1f2d23;--warn:#f0b35a}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{max-width:1000px;margin:0 auto;padding:28px 16px 48px}
+h1{font-size:30px;margin:0 0 4px}
+.tag{color:var(--muted);margin:0 0 22px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px 18px 16px;margin:0 0 18px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px}
+.q{font-weight:600;margin:0 0 4px}
+.q+p{margin:0;color:var(--muted);font-size:14.5px}
+label{display:block;font-weight:600;margin:0 0 6px}
+input[type=file]{width:100%;padding:8px;border:1px dashed var(--line);border-radius:8px;background:transparent;color:var(--ink)}
+select,input[type=number]{width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);font-size:15px}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:14px}
+button{border:0;border-radius:8px;padding:10px 16px;font-size:15px;font-weight:600;cursor:pointer}
+.primary{background:var(--accent);color:var(--accent-ink)}
+.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+button:disabled{opacity:.55;cursor:default}
+#status{color:var(--muted);font-size:14.5px;min-height:22px}
+#status.err{color:var(--warn)}
+iframe{width:100%;border:1px solid var(--line);border-radius:10px;background:#fff;min-height:620px}
+code{background:var(--soft);padding:1px 5px;border-radius:4px;font-size:14px}
+.small{font-size:13.5px;color:var(--muted)}
+footer{margin-top:28px;font-size:13.5px;color:var(--muted)}
+a{color:var(--accent)}
+</style>
+</head>
+<body>
+<main>
+  <h1>GPverdict</h1>
+  <p class="tag">Choose genomic prediction methods for selection — from your own cross-validation, in your browser.</p>
+
+  <section class="card grid">
+    <div><p class="q">Which metric can rank methods?</p><p>Checked on your predictions: only metrics that ignore order-preserving changes and respond to order reversal represent within-environment selection.</p></div>
+    <div><p class="q">Which method, and is its lead real?</p><p>Methods ranked by the admissible metric, with the methods your trial cannot tell apart from the leader.</p></div>
+    <div><p class="q">What would RMSE have chosen?</p><p>The method an error-magnitude ranking picks, and an out-of-sample test of how much selection gain each rule recovers.</p></div>
+    <div><p class="q">How large must a trial be?</p><p>Genotype–environment cells needed to resolve a given accuracy gain.</p></div>
+  </section>
+
+  <section class="card">
+    <label for="file">Predictions (CSV)</label>
+    <input id="file" type="file" accept=".csv,text/csv">
+    <p class="small">One row per environment, genotype and method, with columns <code>environment</code>, <code>genotype</code>, <code>observed</code>, <code>predicted</code>, <code>method</code> (also accepted: <code>Env</code>, <code>k</code>, <code>y</code>, <code>p</code>). Predictions should come from cross-validation.</p>
+    <div class="grid" style="margin-top:10px">
+      <div><label for="frac">Selected fraction within each environment</label>
+        <select id="frac"><option value="0.05">top 5 %</option><option value="0.10" selected>top 10 %</option><option value="0.15">top 15 %</option><option value="0.20">top 20 %</option></select></div>
+      <div><label for="minn">Minimum genotypes per environment</label><input id="minn" type="number" min="5" value="10"></div>
+    </div>
+    <div class="row">
+      <button id="run" class="primary" disabled>Run</button>
+      <button id="example" class="ghost" disabled>Try the spring wheat example</button>
+      <span id="status">Loading Python in your browser…</span>
+    </div>
+    <p class="small">Your data stay on this computer: every computation runs locally in the browser (Pyodide); nothing is uploaded.</p>
+  </section>
+
+  <section id="out" class="card" hidden>
+    <div class="row" style="margin:0 0 12px"><button id="dlh" class="ghost">Download report (HTML)</button><button id="dlj" class="ghost">Download results (JSON)</button></div>
+    <iframe id="report" title="GPverdict report"></iframe>
+  </section>
+
+  <footer>
+    GPverdict 1.0 · Lv G., Gu L. (2026) <em>A decision-based criterion and an open tool for choosing genomic prediction methods across environments</em> ·
+    <a href="https://github.com/nblvguohao/gpverdict">source code and Python package</a> · MIT licence.
+    Example data: spring wheat Uniform Regional Scab Nursery (CC0), cross-validated predictions of 17 methods.
+  </footer>
+</main>
+<script src="https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js"></script>
+<script>
+const $ = id => document.getElementById(id);
+let py = null, lastHtml = "", lastJson = "";
+function status(msg, err=false){ const s=$("status"); s.textContent=msg; s.className = err ? "err" : ""; }
+async function boot(){
+  try{
+    py = await loadPyodide();
+    status("Loading numpy and pandas…");
+    await py.loadPackage(["numpy","pandas"]);
+    py.FS.mkdirTree("/home/pyodide/gpverdict");
+    for (const f of ["__init__.py","core.py","report.py","cli.py"]){
+      const r = await fetch("gpverdict/"+f); if(!r.ok) throw new Error("cannot load "+f);
+      py.FS.writeFile("/home/pyodide/gpverdict/"+f, await r.text());
+    }
+    py.runPython("import sys; sys.path.insert(0,'/home/pyodide'); import gpverdict");
+    status("Ready. Choose a CSV file or try the example.");
+    $("example").disabled = false; $("file").addEventListener("change", ()=>{ $("run").disabled = !$("file").files.length; });
+  }catch(e){ status("Could not start Python in this browser: "+e.message, true); }
+}
+async function analyse(csvText, label){
+  $("run").disabled = true; $("example").disabled = true;
+  status("Analysing "+label+"… (a few seconds to a minute)");
+  await new Promise(r=>setTimeout(r,30));
+  try{
+    py.FS.writeFile("/tmp/in.csv", csvText);
+    py.globals.set("FRAC", parseFloat($("frac").value));
+    py.globals.set("MINN", parseInt($("minn").value||"10",10));
+    py.runPython(`
+import gpverdict as gv
+_v = gv.verdict("/tmp/in.csv", frac=FRAC, min_n=MINN, B=200)
+REPORT_HTML = gv.render_html(_v)
+REPORT_JSON = gv.to_json(_v)
+`);
+    lastHtml = py.globals.get("REPORT_HTML"); lastJson = py.globals.get("REPORT_JSON");
+    $("report").srcdoc = lastHtml; $("out").hidden = false;
+    status("Done.");
+    setTimeout(()=>{ const d=$("report").contentDocument; if(d&&d.body) $("report").style.height=(d.body.scrollHeight+40)+"px"; }, 300);
+  }catch(e){ status("Analysis failed: "+(e.message||e).toString().split("\n").slice(-2).join(" "), true); }
+  $("run").disabled = !$("file").files.length; $("example").disabled = false;
+}
+$("run").onclick = async ()=>{ const f=$("file").files[0]; if(f) analyse(await f.text(), f.name); };
+$("example").onclick = async ()=>{ status("Fetching the example…"); const r=await fetch("examples/spring_wheat_URSN.csv"); $("minn").value=12; analyse(await r.text(), "the spring wheat example"); };
+function download(name, text, type){ const a=document.createElement("a"); a.href=URL.createObjectURL(new Blob([text],{type})); a.download=name; a.click(); URL.revokeObjectURL(a.href); }
+$("dlh").onclick = ()=>download("gpverdict_report.html", lastHtml, "text/html");
+$("dlj").onclick = ()=>download("gpverdict_results.json", lastJson, "application/json");
+boot();
+</script>
+</body>
+</html>
