@@ -47,8 +47,13 @@ def headline(v):
         lines.append(f"Out of sample ({o['design']}, {o['splits']} splits, outcome reliability {_f(o['reliability'], 2)}), the method each rule "
                      f"picks recovers {_f(100*rec['spearman'], 0)} % (rank correlation), {_f(100*rec['pearson'], 0)} % (Pearson r) and "
                      f"{_f(100*rec['rmse'], 0)} % (RMSE) of the selection gain attainable over an average method.")
-        if o["reliability"] < 0.5:
+        if not math.isfinite(o["reliability"]):
+            lines.append("With fewer than six methods the outcome's reliability cannot be estimated; read these recoveries as descriptive, not as a comparison.")
+        elif o["reliability"] < 0.5:
             lines.append("The outcome's split-half reliability is below 0.5, so these recoveries should not be compared.")
+    else:
+        lines.append(f"The out-of-sample test was skipped: it needs at least three methods and either eight environments or "
+                     f"{2 * v['settings']['min_genotypes']} genotypes in an environment.")
     return lines
 
 

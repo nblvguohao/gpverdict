@@ -13,11 +13,13 @@ and then averaged over environments, following Lv and Gu (2026):
   - whether a rule picks methods that select better material is tested out of sample.
 """
 import itertools
+import warnings
 from statistics import NormalDist
 
 import numpy as np
 import pandas as pd
 
+warnings.filterwarnings("ignore", category=RuntimeWarning, module=__name__)
 TIE = 1e-9
 # Gaussian design grid (Lv and Gu 2026, Supplementary Table S11): Delta r* ~ k / sqrt(cells)
 K_GAUSS = {0.05: 4.2883, 0.10: 2.9657, 0.20: 2.0927}
@@ -51,10 +53,12 @@ def load(data):
     df = pd.read_csv(data) if isinstance(data, (str, bytes)) or hasattr(data, "read") else data.copy()
     ren = {c: ALIASES[c.strip().lower()] for c in df.columns if c.strip().lower() in ALIASES}
     df = df.rename(columns=ren)
-    miss = [c for c in ("Env", "k", "y", "p", "method") if c not in df.columns]
+    names = {"Env": "environment", "k": "genotype", "y": "observed", "p": "predicted", "method": "method"}
+    miss = [names[c] for c in ("Env", "k", "y", "p", "method") if c not in df.columns]
     if miss:
-        raise ValueError("missing columns: " + ", ".join(miss) +
-                         " (expected environment, genotype, observed, predicted, method)")
+        raise ValueError("missing column(s): " + ", ".join(miss) +
+                         ". Expected one row per environment, genotype and method with columns "
+                         "environment, genotype, observed, predicted, method.")
     df = df[["Env", "k", "y", "p", "method"]].dropna()
     for c in ("Env", "k", "method"):
         df[c] = df[c].astype(str)
@@ -67,7 +71,12 @@ def n_select(n, frac):
 
 
 def _ranks(a):
-    return pd.Series(a).rank(method="average").to_numpy()
+    """Average ranks, 1-based, ties sharing their mean rank (as pandas rank(method="average"))."""
+    a = np.asarray(a, dtype=float); o = np.argsort(a, kind="mergesort"); s = a[o]
+    edge = np.flatnonzero(np.r_[True, s[1:] != s[:-1], True])
+    starts, ends = edge[:-1], edge[1:]
+    r = np.empty(len(a)); r[o] = np.repeat((starts + ends - 1) / 2.0 + 1.0, ends - starts)
+    return r
 
 
 def _corr(a, b):
@@ -103,6 +112,19 @@ def env_metrics(y, p, frac):
     else:
         for c in ("pearson", "spearman", "slope", "sel_diff", "hit_rate", "ndcg"):
             out[c] = np.nan
+    return out
+
+
+def _split_metrics(y, p, frac):
+    """The four statistics the outcome test needs, with the formulas of env_metrics."""
+    e = p - y; out = dict(rmse=float(np.sqrt(np.mean(e * e))))
+    if np.unique(p).size > 1 and y.std() > 0:
+        k = n_select(len(y), frac)
+        out["pearson"] = _corr(y, p); out["spearman"] = _corr(_ranks(y), _ranks(p))
+        top = np.argsort(-p, kind="stable")[:k]
+        out["sel_diff"] = float((y[top].mean() - y.mean()) / y.std())
+    else:
+        out["pearson"] = out["spearman"] = out["sel_diff"] = np.nan
     return out
 
 
@@ -253,21 +275,28 @@ def outcome_test(df, frac=0.10, min_n=10, B=200, seed=0, rules=("spearman", "pea
             if ok.sum() > 5: rel.append(_corr(_ranks(gA[ok]), _ranks(gB[ok])))
     else:
         d = df.merge(usable_envs(df, 2 * min_n), on=["method", "Env"])
-        groups = {(m, e): (g.k.to_numpy(), g.y.to_numpy(), g.p.to_numpy()) for (m, e), g in d.groupby(["method", "Env"])}
+        if d.empty or d.method.nunique() < 3:
+            return None
+        envs = sorted(d.Env.unique())
         genos = {e: np.array(sorted(d[d.Env == e].k.unique())) for e in envs}
+        groups = {(m, e): (np.searchsorted(genos[e], g.k.to_numpy()), g.y.to_numpy(), g.p.to_numpy())
+                  for (m, e), g in d.groupby(["method", "Env"])}
         for _ in range(B):
-            half = {e: set(rng.permutation(genos[e])[:len(genos[e]) // 2].tolist()) for e in envs}
+            half = {}
+            for e in envs:
+                perm = rng.permutation(len(genos[e])); mask = np.zeros(len(genos[e]), bool)
+                mask[perm[:len(genos[e]) // 2]] = True; half[e] = mask
             scoreA = {r: {} for r in rules}; gA = {}; gB = {}
             for m in meths:
                 accA = {r: [] for r in rules}; ga = []; gb = []
                 for e in envs:
                     if (m, e) not in groups: continue
-                    k_, y, p = groups[(m, e)]; inA = np.array([x in half[e] for x in k_])
-                    ma = env_metrics(y[inA], p[inA], frac); mb = env_metrics(y[~inA], p[~inA], frac)
+                    code, y, p = groups[(m, e)]; inA = half[e][code]
+                    ma = _split_metrics(y[inA], p[inA], frac); mb = _split_metrics(y[~inA], p[~inA], frac)
                     for r in rules: accA[r].append(ma[r])
                     ga.append(ma["sel_diff"]); gb.append(mb["sel_diff"])
-                for r in rules: scoreA[r][m] = np.nanmean(accA[r])
-                gA[m] = np.nanmean(ga); gB[m] = np.nanmean(gb)
+                for r in rules: scoreA[r][m] = np.nanmean(accA[r]) if accA[r] else np.nan
+                gA[m] = np.nanmean(ga) if ga else np.nan; gB[m] = np.nanmean(gb) if gb else np.nan
             gBv = np.array([gB[m] for m in meths]); gAv = np.array([gA[m] for m in meths])
             for r in rules:
                 v = np.array([scoreA[r][m] for m in meths]) * (1 if METRICS[r][2] > 0 else -1)
@@ -316,4 +345,6 @@ def verdict(data, frac=0.10, min_n=10, B=400, seed=0, check_invariance=True, run
     out["projection_gap"] = float((out["intensity"] * S.pearson - S.sel_diff).mean())
     out["invariance"] = invariance_check(df, frac, min_n) if check_invariance else None
     out["outcome"] = outcome_test(df, frac, min_n, B=min(B, 200), seed=seed) if run_outcome and S.shape[0] >= 3 else None
+    if out["outcome"] is not None and not np.isfinite(out["outcome"]["best"]):
+        out["outcome"] = None
     return out
