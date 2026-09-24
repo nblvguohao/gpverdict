@@ -42,7 +42,7 @@ a{color:var(--accent)}
 
   <section class="card grid">
     <div><p class="q">Which metric can rank methods?</p><p>Checked on your predictions: only metrics that ignore order-preserving changes and respond to order reversal represent within-environment selection.</p></div>
-    <div><p class="q">Which method, and is its lead real?</p><p>Methods ranked by the admissible metric, with the methods your trial cannot tell apart from the leader.</p></div>
+    <div><p class="q">Which method, and is its lead real?</p><p>Methods ranked by the within-environment rank and Pearson correlations, with the methods your trial cannot tell apart from the leaders.</p></div>
     <div><p class="q">What would RMSE have chosen?</p><p>The method an error-magnitude ranking picks, and an out-of-sample test of how much selection gain each rule recovers.</p></div>
     <div><p class="q">How large must a trial be?</p><p>Genotype–environment cells needed to resolve a given accuracy gain.</p></div>
   </section>
@@ -70,7 +70,7 @@ a{color:var(--accent)}
   </section>
 
   <footer>
-    GPverdict 1.0.1 · Lv G., Gu L. (2026) <em>A decision-based criterion and an open tool for choosing genomic prediction methods across environments</em> ·
+    GPverdict 1.1 · Lv G., Gu L. (2026) <em>A decision-based criterion and an open tool for choosing genomic prediction methods across environments</em> ·
     <a href="https://github.com/nblvguohao/gpverdict">source code and Python package</a> · MIT licence.
     Example data: spring wheat Uniform Regional Scab Nursery (CC0), cross-validated predictions of 17 methods.
   </footer>

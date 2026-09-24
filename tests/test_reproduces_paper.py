@@ -27,3 +27,12 @@ def test_cells_law():
     assert abs(gv.k_gauss(0.10) - 2.9657) < 1e-9
     assert abs(gv.cells_needed(0.05) - (2.9657 / 0.05) ** 2) < 1e-6
     assert abs(gv.resolvable_gap(10_000) - 0.029657) < 1e-9
+
+
+def test_from_wide_matches_long():
+    df = gv.load(EX)
+    wide = df.pivot_table(index=["Env", "k", "y"], columns="method", values="p").reset_index()
+    back = gv.from_wide(wide, "Env", "k", "y")
+    a = df.sort_values(["method", "Env", "k"]).reset_index(drop=True)
+    b = back.sort_values(["method", "Env", "k"]).reset_index(drop=True)
+    assert len(a) == len(b) and np.allclose(a.p.to_numpy(), b.p.to_numpy())

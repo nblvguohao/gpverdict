@@ -66,6 +66,15 @@ def load(data):
     return df.reset_index(drop=True)
 
 
+def from_wide(df, environment, genotype, observed, methods=None):
+    """Long table from a wide one with one prediction column per method, e.g. the cross-validated
+    predictions of rrBLUP, BGLR, sommer or scikit-learn models written side by side.
+    `methods`: the prediction columns (default: every column not named in the other arguments)."""
+    methods = methods or [c for c in df.columns if c not in (environment, genotype, observed)]
+    long = df.melt(id_vars=[environment, genotype, observed], value_vars=methods, var_name="method", value_name="predicted")
+    return load(long.rename(columns={environment: "environment", genotype: "genotype", observed: "observed"}))
+
+
 def n_select(n, frac):
     return max(1, int(round(frac * n)))
 
@@ -324,9 +333,15 @@ def verdict(data, frac=0.10, min_n=10, B=400, seed=0, check_invariance=True, run
     R = pd.DataFrame({k: ranks(S, k) for k in ("spearman", "pearson", "rmse", "sel_diff")})
     RI = rank_intervals(ET, "spearman", B, seed) if ET.Env.nunique() >= 8 else None
     cells = float(S.cells.median()); gap = resolvable_gap(cells, frac)
+    # both within-environment correlations rank methods for this decision: the rank correlation is
+    # admissible, Pearson r is protected against calibration and selected as well in the outcome
+    # tests of Lv and Gu (2026). A method is tied with the leaders if it lies within the resolvable
+    # gap of the best method on either correlation.
     order = S.spearman.sort_values(ascending=False)
     lead = order.index[0]
-    tied = [m for m in order.index if order[lead] - order[m] <= gap]
+    tied_s = {m for m in order.index if order[lead] - order[m] <= gap}
+    tied_p = {m for m in S.index if S.pearson.max() - S.pearson[m] <= gap}
+    tied = [m for m in order.index if m in tied_s | tied_p]
     margin = float(order.iloc[0] - order.iloc[1]) if len(order) > 1 else np.nan
     rmse_pick = S.rmse.idxmin(); pearson_pick = S.pearson.idxmax()
     rev, npairs = reversal(S, "rmse", "pearson")

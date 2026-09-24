@@ -13,9 +13,10 @@ truncation selection:
    their order changes it (Tier I: rank correlation, realised selection differential, top-*k* hit rate, NDCG).
    Pearson *r* is unmoved by calibration only (Tier II); RMSE, MAE, *R*² and pooled metrics are neither
    (Tier III). GPverdict checks this on your own predictions.
-2. **Which method leads, and is its lead real?** Methods ranked by the mean within-environment rank
-   correlation, with 95 % rank intervals, and the methods your trial cannot tell apart from the leader: those
-   within *k*/√*N* of it, where *N* is the number of genotype–environment cells (Gaussian lower bound).
+2. **Which method leads, and is its lead real?** Methods ranked by the within-environment rank and Pearson
+   correlations (both suit this decision; neither consistently selected better in published tests), with 95 %
+   rank intervals, and the methods your trial cannot tell apart from the leaders: those within *k*/√*N* of the
+   best on either correlation, where *N* is the number of genotype–environment cells (Gaussian lower bound).
 3. **What would RMSE have chosen?** The method an error-magnitude ranking picks, the share of method pairs
    RMSE and Pearson *r* order oppositely, and an out-of-sample test of how much of the attainable selection
    gain each rule's choice recovers (environments split in halves; genotypes split within environments when
@@ -38,6 +39,18 @@ open("report.html", "w").write(gv.render_html(v))
 Input: a CSV with one row per environment, genotype and method and the columns `environment`, `genotype`,
 `observed`, `predicted`, `method` (`Env`, `k`, `y`, `p` are also accepted). Environments with fewer than
 `--min-genotypes` genotypes (default 10) are skipped. Dependencies: numpy and pandas.
+
+### From rrBLUP, BGLR or any other software
+
+Write one row per environment and genotype with the observed value and one column of cross-validated
+predictions per method, then either reshape it in R (`examples/export_from_R.R` shows rrBLUP) or let
+GPverdict do it:
+
+```python
+import pandas as pd, gpverdict as gv
+wide = pd.read_csv("cv_predictions_wide.csv")        # environment, genotype, observed, rrBLUP, BayesB, ...
+v = gv.verdict(gv.from_wide(wide, "environment", "genotype", "observed"))
+```
 
 ## Validation
 

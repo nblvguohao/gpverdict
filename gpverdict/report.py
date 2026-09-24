@@ -22,19 +22,21 @@ def _cells(n):
 
 def headline(v):
     r = v["resolution"]; lead = v["leader"]; tied = r["tied_with_leader"]
-    lines = [f"**Choose `{lead}`** for within-environment selection of the top {v['settings']['frac']:.0%}: "
-             f"it ranks first by the mean within-environment rank correlation, the metric this decision admits."]
+    frac = v['settings']['frac']; pl = v["pearson_pick"]
+    first = (f"`{lead}` ranks first by both" if pl == lead else f"`{lead}` ranks first by the rank correlation and `{pl}` by Pearson r")
+    lines = [f"**Rank methods by a within-environment correlation** for selecting the top {frac:.0%} in each environment: "
+             f"{first}. Both correlations can rank methods for this decision (the rank correlation is admissible, Pearson r is "
+             f"protected against calibration), and in the published outcome tests neither consistently selected better material."]
     if len(tied) > 1:
-        others = ", ".join(f"`{m}`" for m in tied if m != lead)
-        lines.append(f"At this trial size ({v['data']['cells']:,} genotype–environment cells per method) it cannot be told apart "
-                     f"from {others}: they lie within {_f(r['gap'])} of it, the smallest gap such a trial resolves "
-                     f"(Gaussian lower bound; calibrated panels needed {_f(r['panel_range'][0])}–{_f(r['panel_range'][1])}). "
-                     f"Choose among them on cost or simplicity.")
+        names = ", ".join(f"`{m}`" for m in tied)
+        lines.append(f"**Choose among {names}** on cost or simplicity: at this trial size ({v['data']['cells']:,} genotype–environment "
+                     f"cells per method) they lie within {_f(r['gap'])} of the best on at least one correlation, the smallest gap "
+                     f"such a trial resolves (Gaussian lower bound; calibrated panels needed {_f(r['panel_range'][0])}–{_f(r['panel_range'][1])}).")
     else:
-        lines.append(f"Its lead of {_f(r['leader_margin'])} exceeds {_f(r['gap'])}, the smallest gap this trial resolves "
+        lines.append(f"**Choose `{lead}`**: its lead of {_f(r['leader_margin'])} exceeds {_f(r['gap'])}, the smallest gap this trial resolves "
                      f"(Gaussian lower bound; calibrated panels needed {_f(r['panel_range'][0])}–{_f(r['panel_range'][1])}).")
     if math.isfinite(r["leader_margin"]) and r["leader_margin"] < 1e-4:
-        lines.append("The first two methods are practically identical on this metric (gap below 0.0001).")
+        lines.append("The first two methods are practically identical on the rank correlation (gap below 0.0001).")
     elif math.isfinite(r["leader_margin"]):
         lines.append(f"Resolving the gap between the first two methods ({_f(r['leader_margin'], 4)}) would take about "
                      f"{_cells(r['cells_to_resolve_margin'])} cells.")
