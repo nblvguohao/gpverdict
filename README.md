@@ -40,6 +40,13 @@ Input: a CSV with one row per environment, genotype and method and the columns `
 `observed`, `predicted`, `method` (`Env`, `k`, `y`, `p` are also accepted). Environments with fewer than
 `--min-genotypes` genotypes (default 10) are skipped. Dependencies: numpy and pandas.
 
+### A complete R example
+
+`examples/rrblup_to_gpverdict.R` fits GBLUP, rrBLUP marker regression and a Gaussian kernel with
+rrBLUP in five-fold leave-genotypes-out cross-validation on the spring wheat data in `examples/`
+(384 lines, 2,302 markers, 109 environments; CC0), writes `predictions_long.csv` and is checked end
+to end: `Rscript rrblup_to_gpverdict.R && gpverdict predictions_long.csv --min-genotypes 12`.
+
 ### From rrBLUP, BGLR or any other software
 
 Write one row per environment and genotype with the observed value and one column of cross-validated

@@ -11,4 +11,4 @@ from .core import (load, from_wide, env_table, summarise, reversal, invariance_c
                    outcome_test, resolvable_gap, cells_needed, k_gauss, verdict, METRICS)
 from .report import render_markdown, render_html, to_json
 
-__version__ = "1.1.0"
+__version__ = "1.1.1"

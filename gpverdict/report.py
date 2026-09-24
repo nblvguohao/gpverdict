@@ -37,6 +37,9 @@ def headline(v):
                      f"(Gaussian lower bound; calibrated panels needed {_f(r['panel_range'][0])}–{_f(r['panel_range'][1])}).")
     if math.isfinite(r["leader_margin"]) and r["leader_margin"] < 1e-4:
         lines.append("The first two methods are practically identical on the rank correlation (gap below 0.0001).")
+    elif math.isfinite(r["leader_margin"]) and r["cells_to_resolve_margin"] > 100 * v["data"]["cells"]:
+        lines.append(f"The first two methods differ by {_f(r['leader_margin'], 4)}, a gap that no practical trial could resolve "
+                     f"(more than 100 times this one).")
     elif math.isfinite(r["leader_margin"]):
         lines.append(f"Resolving the gap between the first two methods ({_f(r['leader_margin'], 4)}) would take about "
                      f"{_cells(r['cells_to_resolve_margin'])} cells.")
@@ -70,7 +73,7 @@ def render_markdown(v):
            f"{v['data']['methods']} methods, {v['data']['environments']} environments, {v['data']['genotypes']:,} genotypes; "
            f"selection of the top {v['settings']['frac']:.0%} within each environment.", "", "## Verdict", ""]
     out += [f"- {l}" for l in headline(v)]
-    out += ["", "## Methods ranked by the admissible metric", "",
+    out += ["", "## Methods ranked by the within-environment correlations", "",
             "| Rank | Method | Rank correlation | Pearson r | RMSE | Realised selection differential | Rank by RMSE |"
             + (" 95 % rank interval |" if RI is not None else ""),
             "|---:|---|---:|---:|---:|---:|---:|" + ("---:|" if RI is not None else "")]
