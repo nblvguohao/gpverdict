@@ -1,5 +1,5 @@
-"""The forward-evaluation module must reproduce the published pooled results of Lv, Zheng and Gu (2026, forward benchmark)
-from the year-effect tables archived with that paper (tests/data, copied from gxe-forward-evaluation), and the
+"""The forward-evaluation module must reproduce the pooled results reported by Lv, Zheng and Gu (2026, forward benchmark; manuscript in preparation)
+from the year-effect tables archived with that paper (tests/data, copied from the authors' analysis results), and the
 environment-level scores of the benchmark from per-cell predictions (examples/forward_MU_SOY.csv)."""
 import os
 
@@ -16,7 +16,7 @@ EXP = rd("expected_pooled_31.csv").set_index("contrast")
 
 
 def check(label, ye, res, level=0.95):
-    """Pool with the module and compare with the published row (estimate, both intervals, both verdicts) to 1e-12."""
+    """Pool with the module and compare with the reported row (estimate, both intervals, both verdicts) to 1e-9."""
     r = gv.pool_year_effects(ye[["dataset", "d", "se"]], resolution=res, level=level).iloc[0]
     e = EXP.loc[label]
     for a, b in (("est", "est"), ("lo", "dl_lo"), ("hi", "dl_hi"), ("tau2", "tau2"), ("hk_lo", "hk_lo"), ("hk_hi", "hk_hi")):

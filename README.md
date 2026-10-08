@@ -94,7 +94,8 @@ GPverdict reproduces the published results of Lv et al. (2026) exactly; `pytest 
 rate (25.0 % of 136 method pairs) and the out-of-sample recoveries (58.7 %, 78.5 % and 37.9 %) on the spring
 wheat example, and that the empirical tiers follow the criterion. `tests/test_forward.py` checks that the
 forward module reproduces the pooled estimates, both intervals and the verdicts of the forward benchmark
-(Lv, Zheng and Gu 2026; 48 target years) to 1e-9 from the year-level tables archived with that paper, and
+(Lv, Zheng and Gu 2026, manuscript in preparation; 48 target years) to 1e-9 from the year-level tables
+archived with that paper (`tests/data`), and
 that per-cell entry reproduces the benchmark's environment-level differences for the soybean example (to
 1e-12; to 5e-4 for the two kNN methods, because the archived predictions are stored in single precision
 and near-ties change a few ranks). The *t* quantile for the Hartung–Knapp interval is computed without
@@ -110,7 +111,10 @@ G. Lv, R. Zheng, L. Gu, A decision-based criterion and a resolution threshold fo
 models within trials (2026). Analysis code for the paper: https://github.com/nblvguohao/gp-decision-criterion
 
 Forward evaluation: G. Lv, R. Zheng, L. Gu, Genomic prediction for selection in a new year: a forward
-benchmark across 48 target years of maize, wheat and soybean trials (2026). Analysis code for the paper:
-https://github.com/nblvguohao/gxe-forward-evaluation
+benchmark across 48 target years of maize, wheat and soybean trials (2026), manuscript in preparation. Analysis
+code for the paper: https://github.com/nblvguohao/gxe-forward-evaluation
 
-Licence: MIT.
+Licence: MIT. The pooling functions of `gpverdict/forward.py` (`floor_se`, `dersimonian_laird`,
+`hartung_knapp`) are copied from `src/dartgxe/forward/pool.py` of gxe-forward-evaluation (CC BY-NC 4.0 there;
+`floor_se` and `dersimonian_laird` as in public commit d3c2e43, `hartung_knapp` as in the authors' analysis
+commit 7ba0319, not yet public) and are relicensed under MIT by their copyright holders, G. Lv and L. Gu.

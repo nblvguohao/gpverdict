@@ -13,11 +13,14 @@ forward benchmark across 48 target years of maize, wheat and soybean trials":
 4. A difference is "resolved" if it is at least 3/sqrt(N), N the number of scored genotype-environment cells, and its
    interval excludes zero; "detectable, below resolution" if only the interval condition holds; "tied" otherwise.
 
-floor_se, dersimonian_laird and hartung_knapp are copied unchanged from the authors' analysis code
-(gxe-forward-evaluation, src/dartgxe/forward/pool.py) and relicensed by the authors under the MIT licence; the only
-change is that normal and t quantiles come from the Python standard library instead of scipy, so the module runs in a
-browser with numpy and pandas only. tests/test_forward.py checks them against the published year-effect tables.
-numpy and pandas only."""
+Provenance and licence. floor_se, dersimonian_laird and hartung_knapp are copied from src/dartgxe/forward/pool.py of
+the analysis code of that paper (https://github.com/nblvguohao/gxe-forward-evaluation, released there under CC BY-NC
+4.0): floor_se and dersimonian_laird as in public commit d3c2e43, hartung_knapp as in the authors' analysis commit
+7ba0319, which is not yet in the public repository. The copyright holders of that code (G. Lv and L. Gu) relicense
+these functions under the MIT licence for GPverdict. The only change is that normal and t quantiles come from the
+Python standard library instead of scipy (agreement with scipy.stats.t.ppf within 3e-10), so the module runs in a
+browser with numpy and pandas only. tests/test_forward.py checks the module against the year-effect tables and
+pooled results archived with that paper (tests/data)."""
 import math
 import re
 from statistics import NormalDist
@@ -100,7 +103,7 @@ def t_ppf(q, df):
     return (lo + hi) / 2
 
 
-# ------------------------------------------------------------------ pooling (from gxe-forward-evaluation, pool.py)
+# ------------------------------------------------------------------ pooling (from gxe-forward-evaluation, pool.py; MIT, see module docstring)
 def floor_se(ye: pd.DataFrame) -> pd.DataFrame:
     ye = ye.copy()
     pos_all = ye.loc[ye["se"] > 0, "se"]
@@ -253,7 +256,7 @@ def forward_verdict(data, reference, min_genotypes=25, B=2000, seed=0, level=0.9
 
 def pool_year_effects(YE, resolution=None, cells=None, level=0.95):
     """Second entry point: pool a table of year effects (columns dataset, d, se; optional method) without per-cell
-    data, e.g. the published year-effect tables. Give either the resolution or the number of scored cells."""
+    data, e.g. the year-effect tables archived with a paper. Give either the resolution or the number of scored cells."""
     YE = YE.copy()
     if "method" not in YE.columns:
         YE["method"] = "contrast"
