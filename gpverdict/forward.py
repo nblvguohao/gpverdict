@@ -1,6 +1,6 @@
 """Forward evaluation: compare prediction methods with a reference method over target years, within environments.
 
-This module implements the scoring of Lv, Zheng and Gu (2026), "Genomic prediction for selection in a new year: a
+This module implements the scoring of Lv and Gu (2026), "Genomic prediction for selection in a new year: a
 forward benchmark across 48 target years of maize, wheat and soybean trials":
 
 1. In every environment of every target year, the Spearman correlation between observed and predicted values is

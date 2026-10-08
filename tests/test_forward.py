@@ -1,4 +1,4 @@
-"""The forward-evaluation module must reproduce the pooled results reported by Lv, Zheng and Gu (2026, forward benchmark; manuscript in preparation)
+"""The forward-evaluation module must reproduce the pooled results reported by Lv and Gu (2026, forward benchmark; manuscript in preparation)
 from the year-effect tables archived with that paper (tests/data, copied from the authors' analysis results), and the
 environment-level scores of the benchmark from per-cell predictions (examples/forward_MU_SOY.csv)."""
 import os

@@ -94,7 +94,7 @@ GPverdict reproduces the published results of Lv et al. (2026) exactly; `pytest 
 rate (25.0 % of 136 method pairs) and the out-of-sample recoveries (58.7 %, 78.5 % and 37.9 %) on the spring
 wheat example, and that the empirical tiers follow the criterion. `tests/test_forward.py` checks that the
 forward module reproduces the pooled estimates, both intervals and the verdicts of the forward benchmark
-(Lv, Zheng and Gu 2026, manuscript in preparation; 48 target years) to 1e-9 from the year-level tables
+(Lv and Gu 2026, manuscript in preparation; 48 target years) to 1e-9 from the year-level tables
 archived with that paper (`tests/data`), and
 that per-cell entry reproduces the benchmark's environment-level differences for the soybean example (to
 1e-12; to 5e-4 for the two kNN methods, because the archived predictions are stored in single precision
@@ -110,7 +110,7 @@ Regional Scab Nursery of spring wheat (109 environments), built from data releas
 G. Lv, R. Zheng, L. Gu, A decision-based criterion and a resolution threshold for ranking genomic prediction
 models within trials (2026). Analysis code for the paper: https://github.com/nblvguohao/gp-decision-criterion
 
-Forward evaluation: G. Lv, R. Zheng, L. Gu, Genomic prediction for selection in a new year: a forward
+Forward evaluation: G. Lv, L. Gu, Genomic prediction for selection in a new year: a forward
 benchmark across 48 target years of maize, wheat and soybean trials (2026), manuscript in preparation. Analysis
 code for the paper: https://github.com/nblvguohao/gxe-forward-evaluation
 

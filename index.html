@@ -66,7 +66,7 @@ a{color:var(--accent)}
 
   <section class="card">
     <h2 style="margin:0 0 6px;font-size:20px">Forward evaluation over target years</h2>
-    <p class="small" style="margin-top:0">Predictions of each target year made from earlier years only. Each method is compared with a reference method within environments, the differences are pooled over target years (DerSimonian–Laird with Hartung–Knapp alongside), and a difference counts as resolved only if it is at least 3/√N and its interval excludes zero (Lv, Zheng and Gu 2026, forward benchmark, manuscript in preparation).</p>
+    <p class="small" style="margin-top:0">Predictions of each target year made from earlier years only. Each method is compared with a reference method within environments, the differences are pooled over target years (DerSimonian–Laird with Hartung–Knapp alongside), and a difference counts as resolved only if it is at least 3/√N and its interval excludes zero (Lv and Gu 2026, forward benchmark, manuscript in preparation).</p>
     <label for="ffile">Forward predictions (CSV)</label>
     <input id="ffile" type="file" accept=".csv,text/csv">
     <p class="small">Columns <code>environment</code>, <code>year</code>, <code>genotype</code>, <code>observed</code>, <code>predicted</code>, <code>method</code>; optional <code>dataset</code>, and <code>new</code> (1 = new line) or <code>first_year</code> to report new and old lines separately.</p>
@@ -86,7 +86,7 @@ a{color:var(--accent)}
   </section>
 
   <footer>
-    GPverdict 1.2.1 · Lv G., Zheng R., Gu L. (2026) <em>A decision-based criterion and a resolution threshold for ranking genomic prediction models within trials</em>; forward evaluation: Lv G., Zheng R., Gu L. (2026) <em>Genomic prediction for selection in a new year: a forward benchmark across 48 target years of maize, wheat and soybean trials</em>, manuscript in preparation ·
+    GPverdict 1.2.1 · Lv G., Zheng R., Gu L. (2026) <em>A decision-based criterion and a resolution threshold for ranking genomic prediction models within trials</em>; forward evaluation: Lv G., Gu L. (2026) <em>Genomic prediction for selection in a new year: a forward benchmark across 48 target years of maize, wheat and soybean trials</em>, manuscript in preparation ·
     <a href="https://github.com/nblvguohao/gpverdict">source code and Python package</a> · MIT licence.
     Example data: spring wheat Uniform Regional Scab Nursery (CC0), cross-validated predictions of 17 methods; soybean lines of Canella Vieira et al. (2022; Dryad, CC0), forward predictions of 11 methods for 2020.
   </footer>
