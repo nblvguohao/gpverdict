@@ -116,5 +116,5 @@ code for the paper: https://github.com/nblvguohao/gxe-forward-evaluation
 
 Licence: MIT. The pooling functions of `gpverdict/forward.py` (`floor_se`, `dersimonian_laird`,
 `hartung_knapp`) are copied from `src/dartgxe/forward/pool.py` of gxe-forward-evaluation (CC BY-NC 4.0 there;
-`floor_se` and `dersimonian_laird` as in public commit d3c2e43, `hartung_knapp` as in the authors' analysis
-commit 7ba0319, not yet public) and are relicensed under MIT by their copyright holders, G. Lv and L. Gu.
+`floor_se` and `dersimonian_laird` as in public commit d3c2e43, `hartung_knapp` as in public commit
+be88a7e) and are relicensed under MIT by their copyright holders, G. Lv and L. Gu.

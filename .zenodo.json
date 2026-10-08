@@ -1,0 +1,30 @@
+{
+  "title": "GPverdict",
+  "upload_type": "software",
+  "description": "Decision-aligned evaluation of genomic prediction methods across environments: which accuracy metrics can rank methods for within-environment selection, which method leads and whether its lead exceeds the resolution of the trial, and forward evaluation over target years. Runs in a web browser (https://nblvguohao.github.io/gpverdict/) and from the command line.",
+  "creators": [
+    {
+      "name": "Lv, Guohao",
+      "orcid": "0009-0007-4334-9818"
+    },
+    {
+      "name": "Gu, Lichuan",
+      "orcid": "0000-0002-3768-8203"
+    }
+  ],
+  "license": "mit",
+  "keywords": [
+    "genomic prediction",
+    "genotype-by-environment interaction",
+    "model evaluation",
+    "plant breeding"
+  ],
+  "related_identifiers": [
+    {
+      "identifier": "https://github.com/nblvguohao/gxe-forward-evaluation",
+      "relation": "isDerivedFrom",
+      "resource_type": "software",
+      "scheme": "url"
+    }
+  ]
+}

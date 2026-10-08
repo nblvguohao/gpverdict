@@ -15,8 +15,8 @@ forward benchmark across 48 target years of maize, wheat and soybean trials":
 
 Provenance and licence. floor_se, dersimonian_laird and hartung_knapp are copied from src/dartgxe/forward/pool.py of
 the analysis code of that paper (https://github.com/nblvguohao/gxe-forward-evaluation, released there under CC BY-NC
-4.0): floor_se and dersimonian_laird as in public commit d3c2e43, hartung_knapp as in the authors' analysis commit
-7ba0319, which is not yet in the public repository. The copyright holders of that code (G. Lv and L. Gu) relicense
+4.0): floor_se and dersimonian_laird as in public commit d3c2e43, hartung_knapp as in public commit be88a7e
+(unchanged from the authors' analysis commit 7ba0319 used for GPverdict 1.2.0). The copyright holders of that code (G. Lv and L. Gu) relicense
 these functions under the MIT licence for GPverdict. The only change is that normal and t quantiles come from the
 Python standard library instead of scipy (agreement with scipy.stats.t.ppf within 3e-10), so the module runs in a
 browser with numpy and pandas only. tests/test_forward.py checks the module against the year-effect tables and

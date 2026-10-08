@@ -18,4 +18,4 @@ from .report import render_markdown, render_html, to_json
 from .forward import (load_forward, env_differences, year_effects, pool, pool_year_effects, forward_verdict,
                       forward_markdown, forward_html, forward_json, floor_se, dersimonian_laird, hartung_knapp, t_ppf)
 
-__version__ = "1.2.0"
+__version__ = "1.2.1"
