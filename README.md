@@ -22,8 +22,16 @@ truncation selection:
    gain each rule's choice recovers (environments split in halves; genotypes split within environments when
    there are fewer than eight environments).
 4. **How large must a trial be?** Genotype–environment cells needed to resolve a given accuracy gain.
+5. **Does a method still lead in a new year?** *(forward evaluation, new in 1.2.0)* Given predictions of each
+   target year made from earlier years only, each method is compared with a reference method within
+   environments, the differences are pooled over target years (DerSimonian–Laird with a floor on the
+   standard errors; Hartung–Knapp alongside), and a difference is called resolved only when it is at least
+   3/√*N* and its 95 % interval excludes zero; otherwise it is reported as detectable but below resolution,
+   or tied. New and old lines are reported separately when the file says which lines are new.
 
 ## Use
+
+### Methods compared within trials
 
 ```bash
 pip install git+https://github.com/nblvguohao/gpverdict
@@ -39,6 +47,27 @@ open("report.html", "w").write(gv.render_html(v))
 Input: a CSV with one row per environment, genotype and method and the columns `environment`, `genotype`,
 `observed`, `predicted`, `method` (`Env`, `k`, `y`, `p` are also accepted). Environments with fewer than
 `--min-genotypes` genotypes (default 10) are skipped. Dependencies: numpy and pandas.
+
+### Forward evaluation over target years
+
+```bash
+gpverdict forward forward_predictions.csv --reference cell_reml --out forward.html
+```
+
+```python
+import gpverdict as gv
+f = gv.forward_verdict("forward_predictions.csv", reference="cell_reml", min_genotypes=25)
+open("forward.html", "w").write(gv.forward_html(f))
+```
+
+Input: one row per environment, genotype and method with the columns `environment`, `year`, `genotype`,
+`observed`, `predicted`, `method`; optional `dataset` (target years of each dataset are pooled together and
+reported by dataset), and `new` (1 = line first tested in the target year) or `first_year` (first year the
+line was tested), which add separate verdicts for new and old lines. Environments with fewer than
+`--min-genotypes` lines (default 25) are skipped. The environment-cluster bootstrap uses `--bootstrap`
+replicates (default 2,000) and `--seed`. `examples/forward_MU_SOY.csv` holds the forward predictions of 11
+methods for the 2020 soybean trials of the benchmark (Canella Vieira et al. 2022; data doi:10.5061/dryad.z8w9ghxf9, CC0). If you already have
+year-level differences and standard errors, `gv.pool_year_effects(table, resolution=...)` pools them directly.
 
 ### A complete R example
 
@@ -63,7 +92,13 @@ v = gv.verdict(gv.from_wide(wide, "environment", "genotype", "observed"))
 
 GPverdict reproduces the published results of Lv et al. (2026) exactly; `pytest tests` checks the reversal
 rate (25.0 % of 136 method pairs) and the out-of-sample recoveries (58.7 %, 78.5 % and 37.9 %) on the spring
-wheat example, and that the empirical tiers follow the criterion.
+wheat example, and that the empirical tiers follow the criterion. `tests/test_forward.py` checks that the
+forward module reproduces the pooled estimates, both intervals and the verdicts of the forward benchmark
+(Lv, Zheng and Gu 2026; 48 target years) to 1e-9 from the year-level tables archived with that paper, and
+that per-cell entry reproduces the benchmark's environment-level differences for the soybean example (to
+1e-12; to 5e-4 for the two kNN methods, because the archived predictions are stored in single precision
+and near-ties change a few ranks). The *t* quantile for the Hartung–Knapp interval is computed without
+SciPy and agrees with `scipy.stats.t.ppf` to 3e-10.
 
 Example data: cross-validated predictions of 17 methods for Fusarium head blight resistance in the Uniform
 Regional Scab Nursery of spring wheat (109 environments), built from data released under CC0
@@ -73,5 +108,9 @@ Regional Scab Nursery of spring wheat (109 environments), built from data releas
 
 G. Lv, R. Zheng, L. Gu, A decision-based criterion and a resolution threshold for ranking genomic prediction
 models within trials (2026). Analysis code for the paper: https://github.com/nblvguohao/gp-decision-criterion
+
+Forward evaluation: G. Lv, R. Zheng, L. Gu, Genomic prediction for selection in a new year: a forward
+benchmark across 48 target years of maize, wheat and soybean trials (2026). Analysis code for the paper:
+https://github.com/nblvguohao/gxe-forward-evaluation
 
 Licence: MIT.

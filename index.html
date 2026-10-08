@@ -64,15 +64,31 @@ a{color:var(--accent)}
     <p class="small">Your data stay on this computer: every computation runs locally in the browser (Pyodide); nothing is uploaded.</p>
   </section>
 
+  <section class="card">
+    <h2 style="margin:0 0 6px;font-size:20px">Forward evaluation over target years</h2>
+    <p class="small" style="margin-top:0">Predictions of each target year made from earlier years only. Each method is compared with a reference method within environments, the differences are pooled over target years (DerSimonian–Laird with Hartung–Knapp alongside), and a difference counts as resolved only if it is at least 3/√N and its interval excludes zero (Lv, Zheng and Gu 2026, forward benchmark).</p>
+    <label for="ffile">Forward predictions (CSV)</label>
+    <input id="ffile" type="file" accept=".csv,text/csv">
+    <p class="small">Columns <code>environment</code>, <code>year</code>, <code>genotype</code>, <code>observed</code>, <code>predicted</code>, <code>method</code>; optional <code>dataset</code>, and <code>new</code> (1 = new line) or <code>first_year</code> to report new and old lines separately.</p>
+    <div class="grid" style="margin-top:10px">
+      <div><label for="fref">Reference method (exact name)</label><input id="fref" type="text" value="cell_reml" style="width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);font-size:15px"></div>
+      <div><label for="fminn">Minimum genotypes per environment</label><input id="fminn" type="number" min="3" value="25"></div>
+    </div>
+    <div class="row">
+      <button id="frun" class="primary" disabled>Run forward evaluation</button>
+      <button id="fexample" class="ghost" disabled>Try the soybean example</button>
+    </div>
+  </section>
+
   <section id="out" class="card" hidden>
     <div class="row" style="margin:0 0 12px"><button id="dlh" class="ghost">Download report (HTML)</button><button id="dlj" class="ghost">Download results (JSON)</button></div>
     <iframe id="report" title="GPverdict report"></iframe>
   </section>
 
   <footer>
-    GPverdict 1.1.1 · Lv G., Zheng R., Gu L. (2026) <em>A decision-based criterion and a resolution threshold for ranking genomic prediction models within trials</em> ·
+    GPverdict 1.2.0 · Lv G., Zheng R., Gu L. (2026) <em>A decision-based criterion and a resolution threshold for ranking genomic prediction models within trials</em>; forward evaluation: Lv G., Zheng R., Gu L. (2026) <em>Genomic prediction for selection in a new year: a forward benchmark across 48 target years of maize, wheat and soybean trials</em> ·
     <a href="https://github.com/nblvguohao/gpverdict">source code and Python package</a> · MIT licence.
-    Example data: spring wheat Uniform Regional Scab Nursery (CC0), cross-validated predictions of 17 methods.
+    Example data: spring wheat Uniform Regional Scab Nursery (CC0), cross-validated predictions of 17 methods; soybean lines of Canella Vieira et al. (2022; Dryad, CC0), forward predictions of 11 methods for 2020.
   </footer>
 </main>
 <script src="https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js"></script>
@@ -86,13 +102,14 @@ async function boot(){
     status("Loading numpy and pandas…");
     await py.loadPackage(["numpy","pandas"]);
     py.FS.mkdirTree("/home/pyodide/gpverdict");
-    for (const f of ["__init__.py","core.py","report.py","cli.py"]){
+    for (const f of ["__init__.py","core.py","report.py","cli.py","forward.py"]){
       const r = await fetch("gpverdict/"+f); if(!r.ok) throw new Error("cannot load "+f);
       py.FS.writeFile("/home/pyodide/gpverdict/"+f, await r.text());
     }
     py.runPython("import sys; sys.path.insert(0,'/home/pyodide'); import gpverdict");
     status("Ready. Choose a CSV file or try the example.");
     $("example").disabled = false; $("file").addEventListener("change", ()=>{ $("run").disabled = !$("file").files.length; });
+    $("fexample").disabled = false; $("ffile").addEventListener("change", ()=>{ $("frun").disabled = !$("ffile").files.length; });
   }catch(e){ status("Could not start Python in this browser: "+e.message, true); }
 }
 async function analyse(csvText, label){
@@ -116,6 +133,29 @@ REPORT_JSON = gv.to_json(_v)
   }catch(e){ status("Analysis failed: "+(e.message||e).toString().split("\n").slice(-2).join(" "), true); }
   $("run").disabled = !$("file").files.length; $("example").disabled = false;
 }
+async function analyseForward(csvText, label){
+  $("frun").disabled = true; $("fexample").disabled = true;
+  status("Forward evaluation of "+label+"… (a few seconds to a minute)");
+  await new Promise(r=>setTimeout(r,30));
+  try{
+    py.FS.writeFile("/tmp/fin.csv", csvText);
+    py.globals.set("FREF", $("fref").value.trim());
+    py.globals.set("FMINN", parseInt($("fminn").value||"25",10));
+    py.runPython(`
+import gpverdict as gv
+_f = gv.forward_verdict("/tmp/fin.csv", reference=FREF, min_genotypes=FMINN, B=2000, seed=0)
+REPORT_HTML = gv.forward_html(_f)
+REPORT_JSON = gv.forward_json(_f)
+`);
+    lastHtml = py.globals.get("REPORT_HTML"); lastJson = py.globals.get("REPORT_JSON");
+    $("report").srcdoc = lastHtml; $("out").hidden = false;
+    status("Done.");
+    setTimeout(()=>{ const d=$("report").contentDocument; if(d&&d.body) $("report").style.height=(d.body.scrollHeight+40)+"px"; }, 300);
+  }catch(e){ status("Forward evaluation failed: "+(e.message||e).toString().split("\n").slice(-2).join(" "), true); }
+  $("frun").disabled = !$("ffile").files.length; $("fexample").disabled = false;
+}
+$("frun").onclick = async ()=>{ const f=$("ffile").files[0]; if(f) analyseForward(await f.text(), f.name); };
+$("fexample").onclick = async ()=>{ status("Fetching the example…"); const r=await fetch("examples/forward_MU_SOY.csv"); $("fref").value="cell_reml"; $("fminn").value=25; analyseForward(await r.text(), "the soybean example"); };
 $("run").onclick = async ()=>{ const f=$("file").files[0]; if(f) analyse(await f.text(), f.name); };
 $("example").onclick = async ()=>{ status("Fetching the example…"); const r=await fetch("examples/spring_wheat_URSN.csv"); $("minn").value=12; analyse(await r.text(), "the spring wheat example"); };
 function download(name, text, type){ const a=document.createElement("a"); a.href=URL.createObjectURL(new Blob([text],{type})); a.download=name; a.click(); URL.revokeObjectURL(a.href); }
